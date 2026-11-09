@@ -24704,6 +24704,42 @@ abstract class L10n {
   /// **'远程传输'**
   String get remoteTransferSettings;
 
+  /// No description provided for @remoteTransportPreference.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接方式'**
+  String get remoteTransportPreference;
+
+  /// No description provided for @remoteTransportAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动'**
+  String get remoteTransportAuto;
+
+  /// No description provided for @remoteTransportTurn.
+  ///
+  /// In zh, this message translates to:
+  /// **'TURN 优先'**
+  String get remoteTransportTurn;
+
+  /// No description provided for @remoteTransportRelay.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅转发'**
+  String get remoteTransportRelay;
+
+  /// No description provided for @remoteTransportPreferenceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于 DSH Remote，下次连接或重连生效。自动优先尝试直连；TURN 优先跳过直连打洞，失败后使用 Relay 中继；仅转发始终使用 Relay 中继。'**
+  String get remoteTransportPreferenceHint;
+
+  /// No description provided for @searchKwRemoteTransportPreference.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接 方式 路径 直连 P2P TURN 转发 中转 延迟 transport route direct relay'**
+  String get searchKwRemoteTransportPreference;
+
   /// No description provided for @remoteCompactHistory.
   ///
   /// In zh, this message translates to:

@@ -982,6 +982,13 @@ abstract final class Spots {
     keywords: (l) => l.searchKwRemoteAutoConnect,
   );
 
+  static final remoteTransportPreference = SettingSpot(
+    'remote-transport-preference',
+    page: SettingsPageId.remote,
+    title: (l) => l.remoteTransportPreference,
+    keywords: (l) => l.searchKwRemoteTransportPreference,
+  );
+
   static final remoteCompactHistory = SettingSpot(
     'remote-compact-history',
     page: SettingsPageId.remote,
@@ -1109,6 +1116,7 @@ final _rows = <SettingSpot>[
   Spots.engineUninstall,
   Spots.addSshHost,
   Spots.remoteAutoConnect,
+  Spots.remoteTransportPreference,
   Spots.remoteCompactHistory,
   Spots.subagentDepth,
   Spots.parallelCalls,

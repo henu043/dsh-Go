@@ -29,6 +29,7 @@ class DshRemoteRelayBackend implements RelayBackend, RelayNetworkBackend {
     bool direct = true,
     Future<RemoteNetworkRoute> Function()? resolveNetworkRoute,
     this._loadCompactHistory,
+    this._loadTransportPreference,
   }) : _resolveNetworkRoute = resolveNetworkRoute ?? resolveRemoteNetworkRoute,
        account =
            account ??
@@ -43,17 +44,27 @@ class DshRemoteRelayBackend implements RelayBackend, RelayNetworkBackend {
     this.direct = direct;
     if (account == null) {
       this.account.preferredTransports = () async {
+        // Explicit choices must not fall back to automatic routing when the
+        // account's 500 ms network-hint deadline expires.
+        if (_transportPreference != RemoteTransportPreference.auto) {
+          // The next probe establishes this session's route; do not inherit
+          // an old automatic connection's network after a policy change.
+          _networkRoute = RemoteNetworkRoute.unknown;
+          return transportsForRemoteRoute(_networkRoute, preference: _transportPreference);
+        }
         final route = await _resolveNetworkRoute();
         _networkRoute = route;
-        return transportsForRemoteRoute(route);
+        return transportsForRemoteRoute(route, preference: _transportPreference);
       };
     }
   }
 
   final remote.RemoteAccount account;
   final Future<bool> Function()? _loadCompactHistory;
+  final Future<RemoteTransportPreference> Function()? _loadTransportPreference;
   final Future<RemoteNetworkRoute> Function() _resolveNetworkRoute;
   RemoteNetworkRoute _networkRoute = RemoteNetworkRoute.unknown;
+  RemoteTransportPreference _transportPreference = RemoteTransportPreference.auto;
   final _sessionRoutes = Expando<RemoteNetworkRoute>('remote route');
   final _networkProbes = Expando<Future<bool>>('remote network probe');
   final _loggedSessions = Expando<bool>('logged remote network');
@@ -63,6 +74,9 @@ class DshRemoteRelayBackend implements RelayBackend, RelayNetworkBackend {
 
   /// Applies from the next (re)connect.
   set direct(bool enabled) => account.peerConnector = enabled ? peerConnector : null;
+
+  /// Applies on the next transport negotiation, without closing the live client.
+  set transportPreference(RemoteTransportPreference value) => _transportPreference = value;
 
   /// Applies to the next client, without disturbing live streams or its reconnects.
   set compactHistory(bool enabled) => account.compactHistory = enabled;
@@ -291,6 +305,10 @@ class DshRemoteRelayBackend implements RelayBackend, RelayNetworkBackend {
     }
     final loadCompactHistory = _loadCompactHistory;
     if (loadCompactHistory != null) account.compactHistory = await loadCompactHistory();
+    // Restore outside the account's bounded network-hint callback so a cold
+    // start cannot silently use auto while preferences are still loading.
+    final loadTransportPreference = _loadTransportPreference;
+    if (loadTransportPreference != null) transportPreference = await loadTransportPreference();
     return account.connectHost(
       target,
       muxOptions: _muxOptions,

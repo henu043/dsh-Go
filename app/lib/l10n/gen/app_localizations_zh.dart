@@ -13515,6 +13515,25 @@ class L10nZh extends L10n {
   String get remoteTransferSettings => '远程传输';
 
   @override
+  String get remoteTransportPreference => '连接方式';
+
+  @override
+  String get remoteTransportAuto => '自动';
+
+  @override
+  String get remoteTransportTurn => 'TURN 优先';
+
+  @override
+  String get remoteTransportRelay => '仅转发';
+
+  @override
+  String get remoteTransportPreferenceHint =>
+      '用于 DSH Remote，下次连接或重连生效。自动优先尝试直连；TURN 优先跳过直连打洞，失败后使用 Relay 中继；仅转发始终使用 Relay 中继。';
+
+  @override
+  String get searchKwRemoteTransportPreference => '连接 方式 路径 直连 P2P TURN 转发 中转 延迟 transport route direct relay';
+
+  @override
   String get remoteCompactHistory => '精简历史';
 
   @override

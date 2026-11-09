@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
+import '../../remote/relay/network_route.dart';
 import '../../remote/relay/relay_backend.dart';
 import '../../runtime/local_footprint.dart';
 import '../../runtime/runtime_state.dart';
@@ -99,7 +100,19 @@ class RemoteScreen extends ConsumerWidget {
         _RelaySection(onUse: (h) => _use(context, ref, h)),
         SettingsSection(
           title: l10n.remoteTransferSettings,
+          footer: Text(l10n.remoteTransportPreferenceHint),
           children: [
+            SettingsSegmentTile<RemoteTransportPreference>(
+              key: const ValueKey('remote-transport-preference'),
+              spot: Spots.remoteTransportPreference,
+              segments: [
+                PillSegment(RemoteTransportPreference.auto, l10n.remoteTransportAuto),
+                PillSegment(RemoteTransportPreference.turn, l10n.remoteTransportTurn),
+                PillSegment(RemoteTransportPreference.relay, l10n.remoteTransportRelay),
+              ],
+              selected: ref.watch(remoteTransportPreferenceProvider),
+              onChanged: (value) => unawaited(ref.read(remoteTransportPreferenceProvider.notifier).set(value)),
+            ),
             SettingsSwitchTile(
               key: const ValueKey('remote-compact-history'),
               spot: Spots.remoteCompactHistory,

@@ -4,6 +4,16 @@ import 'package:dsh_app/remote/relay/network_route.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('explicit policies skip direct paths on every network', () {
+    for (final route in RemoteNetworkRoute.values) {
+      expect(transportsForRemoteRoute(route, preference: RemoteTransportPreference.turn), [
+        RemoteTransportMode.turn,
+        RemoteTransportMode.relay,
+      ]);
+      expect(transportsForRemoteRoute(route, preference: RemoteTransportPreference.relay), [RemoteTransportMode.relay]);
+    }
+  });
+
   test('only confirmed moves between local and remote networks renegotiate', () {
     for (final previous in RemoteNetworkRoute.values) {
       for (final next in RemoteNetworkRoute.values) {

@@ -14219,6 +14219,25 @@ class L10nEn extends L10n {
   String get remoteTransferSettings => 'Remote transfer';
 
   @override
+  String get remoteTransportPreference => 'Connection method';
+
+  @override
+  String get remoteTransportAuto => 'Auto';
+
+  @override
+  String get remoteTransportTurn => 'Prefer TURN';
+
+  @override
+  String get remoteTransportRelay => 'Relay only';
+
+  @override
+  String get remoteTransportPreferenceHint =>
+      'Applies to DSH Remote on the next connection or reconnect. Auto tries direct connections first; Prefer TURN skips hole punching and falls back to Relay; Relay only always uses Relay.';
+
+  @override
+  String get searchKwRemoteTransportPreference => 'connection method route direct P2P TURN relay latency transport';
+
+  @override
   String get remoteCompactHistory => 'Compact history';
 
   @override

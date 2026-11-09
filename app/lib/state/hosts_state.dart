@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n/l10n.dart';
 import '../remote/link_status.dart';
 import '../remote/relay/dsh_remote_backend.dart';
+import '../remote/relay/network_route.dart';
 import 'app_info.dart';
 import '../remote/relay/relay_backend.dart';
 import '../remote/relay/webrtc_peer.dart';
@@ -301,6 +302,46 @@ final remoteCompactHistoryProvider = NotifierProvider<RemoteCompactHistoryContro
   RemoteCompactHistoryController.new,
 );
 
+/// The transport policy for the next Remote connection or reconnect.
+class RemoteTransportPreferenceController extends Notifier<RemoteTransportPreference> {
+  static const prefsKey = 'remote_transport_preference';
+  late Future<void> _loaded;
+
+  @override
+  RemoteTransportPreference build() {
+    _loaded = _load();
+    return RemoteTransportPreference.auto;
+  }
+
+  Future<void> get ready => _loaded;
+
+  Future<void> _load() async {
+    try {
+      final stored = (await SharedPreferences.getInstance()).getString(prefsKey);
+      if (stored != null && ref.mounted) {
+        state = RemoteTransportPreference.values.firstWhere(
+          (value) => value.name == stored,
+          orElse: () => RemoteTransportPreference.auto,
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> set(RemoteTransportPreference value) async {
+    await _loaded;
+    if (!ref.mounted) return;
+    state = value;
+    try {
+      await (await SharedPreferences.getInstance()).setString(prefsKey, value.name);
+    } catch (_) {}
+  }
+}
+
+final remoteTransportPreferenceProvider =
+    NotifierProvider<RemoteTransportPreferenceController, RemoteTransportPreference>(
+      RemoteTransportPreferenceController.new,
+    );
+
 /// Which host the chat, session list and new chats use. Persisted.
 class ActiveHostController extends Notifier<HostRef> {
   static const prefsKey = 'active_host';
@@ -422,6 +463,7 @@ final relayServerProvider = NotifierProvider<RelayServerController, String?>(Rel
 /// override with a fake; [UnavailableRelayBackend] turns the native relay off.
 final relayBackendProvider = Provider<RelayBackend>((ref) {
   final history = ref.read(remoteCompactHistoryProvider.notifier);
+  final preference = ref.read(remoteTransportPreferenceProvider.notifier);
   final backend = DshRemoteRelayBackend(
     secrets: ref.watch(secretStoreProvider),
     serverUrl: ref.watch(relayServerProvider),
@@ -431,10 +473,19 @@ final relayBackendProvider = Provider<RelayBackend>((ref) {
       await history.ready;
       return ref.read(remoteCompactHistoryProvider);
     },
+    loadTransportPreference: () async {
+      await preference.ready;
+      return ref.read(remoteTransportPreferenceProvider);
+    },
   );
   ref.listen<bool>(
     remoteCompactHistoryProvider,
     (_, enabled) => backend.compactHistory = enabled,
+    fireImmediately: true,
+  );
+  ref.listen<RemoteTransportPreference>(
+    remoteTransportPreferenceProvider,
+    (_, value) => backend.transportPreference = value,
     fireImmediately: true,
   );
   // The old default-off preference no longer controls automatic transport selection.
